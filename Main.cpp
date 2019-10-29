@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "SpreadsheetTableLoader.h"
+#include "Profiler.h"
 
 struct ExData
 {
@@ -23,11 +24,12 @@ void Bind(ssxml::TableBinder& loader, ExData* Table)
 	loader.Bind("col4", Table->col4);
 }
 
+
 int main()
 {
 	ssxml::XmlTableLoader Loader("Ex.xml");
 
 	std::vector<ExData> data = Loader.LoadSheet<ExData>("Ex");
-	
+
 	return 0;
 }

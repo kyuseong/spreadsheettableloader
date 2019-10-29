@@ -2,29 +2,32 @@
 
 #include <string>
 #include <codecvt>
+#include <stringapiset.h>
 
 namespace ssxml
 {
-inline std::string to_utf8(const std::string& str, const std::locale& loc = std::locale{}) {
-	using namespace std::string_literals;
-	using wcvt = std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t>;
-	std::u32string wstr(str.size(), U'\0');
-	std::use_facet<std::ctype<char32_t>>(loc).widen(str.data(), str.data() + str.size(), &wstr[0]);
-	return wcvt{}.to_bytes(
-		reinterpret_cast<const int32_t*>(wstr.data()),
-		reinterpret_cast<const int32_t*>(wstr.data() + wstr.size())
-	);
+
+
+inline std::wstring utf8_to_wstring(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length();
+	len = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), slength, 0, 0);
+	std::wstring r(len, L'\0');
+	MultiByteToWideChar(CP_UTF8, 0, s.c_str(), slength, &r[0], len);
+	return r;
 }
 
-inline std::string from_utf8(const std::string& str, const std::locale& loc = std::locale{}) {
-	using namespace std::string_literals;
-	using wcvt = std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t>;
-	auto wstr = wcvt{}.from_bytes(str);
-	std::string result(wstr.size(), '0');
-	std::use_facet<std::ctype<char32_t>>(loc).narrow(
-		reinterpret_cast<const char32_t*>(wstr.data()),
-		reinterpret_cast<const char32_t*>(wstr.data() + wstr.size()),
-		'?', &result[0]);
-	return result;
+inline std::string utf8_to_string(const char *utf8str, const std::locale& loc = std::locale())
+{
+	// UTF-8 to wstring
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> wconv;
+	std::wstring wstr = wconv.from_bytes(utf8str);
+	// wstring to string
+	std::vector<char> buf(wstr.size());
+	std::use_facet<std::ctype<wchar_t>>(loc).narrow(wstr.data(), wstr.data() + wstr.size(), '?', buf.data());
+	return std::string(buf.data(), buf.size());
 }
+
+
 }

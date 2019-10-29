@@ -40,7 +40,7 @@ bool SpreadsheetXmlLoader::Open(const char* XmlFilename)
 }
 
 // sheet 이름에 해당하는 sheet node 을 반환한다.
-pugi::xml_node SpreadsheetXmlLoader::GetSheetNode(const char* sheet)
+pugi::xml_node SpreadsheetXmlLoader::GetSheetNode(const char* sSheetName)
 {
 	for (auto& workbook : m_WorkbookNode)
 	{
@@ -58,9 +58,9 @@ pugi::xml_node SpreadsheetXmlLoader::GetSheetNode(const char* sheet)
 		if (!Table)
 			continue;
 
-		std::string strSheetName = ssxml::from_utf8(sheetName);
+		std::string SheetName = ssxml::utf8_to_string(sheetName);
 
-		if (strSheetName == sheetName)
+		if (SheetName == sSheetName)
 		{
 			return Table;
 		}

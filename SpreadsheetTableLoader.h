@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "SpreadsheetXmlLoader.h"
+#include "StringUtils.h"
 
 namespace ssxml
 {
@@ -12,7 +13,10 @@ class TableBinder
 {
 public:
 	virtual bool Bind(const char* col, std::string &val) = 0;
+	virtual bool Bind(const char* Col, std::wstring &val) = 0;
 	virtual bool Bind(const char* col, int& val) = 0;
+	virtual bool Bind(const char* col, short& val) = 0;
+	virtual bool Bind(const char* col, unsigned short& val) = 0;
 	virtual bool Bind(const char* col, float& val) = 0;
 };
 
@@ -39,7 +43,25 @@ public:
 		m_Cols.push_back(col);
 		return true;
 	}
+
+
+	bool Bind(const char* Col, std::wstring &val)
+	{
+		m_Cols.push_back(Col);
+		return true;
+	}
+
 	bool Bind(const char* col, int& val)
+	{
+		m_Cols.push_back(col);
+		return true;
+	}
+	virtual bool Bind(const char* col, short& val)
+	{
+		m_Cols.push_back(col);
+		return true;
+	}
+	virtual bool Bind(const char* col, unsigned short& val)
 	{
 		m_Cols.push_back(col);
 		return true;
@@ -56,7 +78,7 @@ public:
 		{
 			for (auto & Col : m_Cols)
 			{
-				if (Col.m_Col == row[i])
+				if (row[i] != nullptr && Col.m_Col == row[i])
 				{
 					Col.m_Index = i;
 					break;
@@ -110,25 +132,62 @@ public:
 
 	bool Bind(const char* Col, std::string &val)
 	{
-		const char* Data = GetValue(Col);
+		const char* v = GetValue(Col);
+		if (v == nullptr)
+			val = "";
+		else
+			val = ssxml::utf8_to_string(v);
+		return true;
+	}
 
-		val = Data;
+	bool Bind(const char* Col, std::wstring &val)
+	{
+		const char* v = GetValue(Col);
+		if (v == nullptr)
+			val = L"";
+		else
+			val = ssxml::utf8_to_wstring(v);
 		return true;
 	}
 
 	bool Bind(const char* Col, int& val)
 	{
-		int index = GetIndex(Col);
-
-		val = atoi(m_Datas->at(index));
+		const char* v = GetValue(Col);
+		if (v == nullptr)
+			val = 0;
+		else
+			val = atoi(v);
 		return true;
 	}
 
-	bool Bind(const char* col, float& val)
+	virtual bool Bind(const char* Col, short& val)
 	{
-		int index = GetIndex(col);
+		const char* v = GetValue(Col);
+		if (v == nullptr)
+			val = 0;
+		else
+			val = (short)atoi(v);
 
-		val = (float)atof(m_Datas->at(index));
+		return true;
+	}
+	virtual bool Bind(const char* Col, unsigned short& val)
+	{
+		const char* v = GetValue(Col);
+		if (v == nullptr)
+			val = 0;
+		else
+			val = (unsigned short)atoi(v);
+
+		return true;
+	}
+
+	bool Bind(const char* Col, float& val)
+	{
+		const char* v = GetValue(Col);
+		if (v == nullptr)
+			val = 0;
+		else
+			val = (float)atof(v);
 
 		return true;
 	}

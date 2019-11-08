@@ -26,7 +26,7 @@ public:
 private:
 	pugi::xml_node GetSheetNode(const char* sheet);
 	int IncrRow(const pugi::xml_node& RowNode, int& RowIndex);
-	const char* AsData(pugi::xml_node Cell, int& ColIndex);
+	const char* AsData(pugi::xml_node Cell, int& ColIndex, std::vector<std::string>& Dic);
 
 };
 }

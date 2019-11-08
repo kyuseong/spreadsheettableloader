@@ -81,8 +81,26 @@ int SpreadsheetXmlLoader::IncrRow(const pugi::xml_node& RowNode, int& RowIndex)
 	return RowIndex;
 }
 
+
+void RecursiveData(pugi::xml_node& Node, std::string& Out)
+{
+	for (auto Child : Node)
+	{
+		const char* val = Child.value();
+		if (val)
+		{
+			Out += val;
+		}
+		//else
+		{
+			RecursiveData(Child, Out);
+		}
+	}
+}
+
+
 // 현재 셀 인덱스와 값을 반환한다.
-const char* SpreadsheetXmlLoader::AsData(pugi::xml_node Cell, int& ColIndex )
+const char* SpreadsheetXmlLoader::AsData(pugi::xml_node Cell, int& ColIndex, std::vector<std::string>& Dic)
 {
 	const char* value = nullptr;
 
@@ -105,6 +123,18 @@ const char* SpreadsheetXmlLoader::AsData(pugi::xml_node Cell, int& ColIndex )
 			{
 				value = data;
 			}
+		}
+	}
+	else
+	{
+		auto Data = Cell.child("ss:Data");
+		if (!!Data)
+		{
+			Dic.push_back({""});
+
+			RecursiveData(Data, Dic.back());
+
+			value = Dic.back().c_str();
 		}
 	}
 
@@ -131,12 +161,14 @@ bool SpreadsheetXmlLoader::Load(const char* SheetName,
 	
 	std::vector<const char*> ColsData;
 	ColsData.resize(TotalCol);
-
+	std::vector<std::string> Dic;
 	int RowIndex = 0;
 	for (auto& RowNode : SheetNode)
 	{
 		if (strcmp(RowNode.name(), "Row") != 0 && strcmp(RowNode.name(), "ss:Row") != 0)
 			continue;
+
+		Dic.clear();
 
 		std::fill(ColsData.begin(), ColsData.end(), nullptr);
 
@@ -150,7 +182,7 @@ bool SpreadsheetXmlLoader::Load(const char* SheetName,
 				continue;
 
 			// 해당 셀의 값을 반환하고 현재 인덱스를 증가
-			const char* data = AsData(cell_node, ColIndex);
+			const char* data = AsData(cell_node, ColIndex, Dic);
 			ColsData[ColIndex - 1] = data;
 		}
 
